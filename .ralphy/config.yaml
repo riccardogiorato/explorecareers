@@ -18,7 +18,7 @@ commands:
 # These are injected into every prompt
 rules: []
   # Examples:
-  # - "Always use TypeScript strict mode"
+  - "Never install vitest or create tests, just work on components and utils and stuff"
   # - "Follow the error handling pattern in src/utils/errors.ts"
   # - "All API endpoints must have input validation with Zod"
   # - "Use server actions instead of API routes in Next.js"

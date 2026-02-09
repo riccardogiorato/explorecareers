@@ -29,12 +29,10 @@ This app lets people upload their resumes, fill in some of their interests, and 
 
 ## Future tasks
 
-- [ ] Add loading state to inform people that it may take up to 15-20 seconds to generate
 - [ ] Clean up the code to not have default react node data that I have right now
 - [ ] Add authentication with Clerk to make people create accounts and remember their resumes
 - [ ] Improve the prompts using synthetic data from GPT-4o for the examples that I specify
 - [ ] Add sharability to the URLs with nanoid
-- [ ] Add rate limiting with Redis Upstash
 - [ ] Add multi-step form where people can add their interests and add this to the prompt of the first endpoint to use someone's interests in there
 - [ ] Add a settings screen where users can go update their resume and interests overall
 - [ ] Add functionality to let users suggest new careers themselves and get a developed plan for it

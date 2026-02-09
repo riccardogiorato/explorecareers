@@ -1,5 +1,5 @@
-import { normalizeText } from '@/lib/utils';
-import { ratelimit } from '@/lib/ratelimit';
+import { normalizeText, getUserId } from '@/lib/utils';
+import { parsingRatelimit } from '@/lib/ratelimit';
 import { NextRequest } from 'next/server';
 import { PDFParse } from 'pdf-parse';
 
@@ -10,8 +10,8 @@ interface PDFParseRequest {
 export async function POST(request: NextRequest) {
   const { resumeUrl } = (await request.json()) as PDFParseRequest;
 
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-  const { success, limit, remaining, reset } = await ratelimit.limit(ip);
+  const userId = getUserId(request);
+  const { success, limit, remaining, reset } = await parsingRatelimit.limit(userId);
 
   if (!success) {
     return new Response(

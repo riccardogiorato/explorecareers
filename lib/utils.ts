@@ -1,6 +1,18 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { customAlphabet } from "nanoid";
+import { createTogetherAI } from "@ai-sdk/togetherai";
+import { NextRequest } from "next/server";
+
+export const togetherai = createTogetherAI({
+  apiKey: process.env.TOGETHER_API_KEY ?? "",
+});
+
+export function getUserId(request: NextRequest): string {
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
+  const userAgent = request.headers.get('user-agent') || '';
+  return ip ? `${ip}:${userAgent.slice(0, 50)}` : userAgent || 'anonymous';
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

@@ -1,10 +1,7 @@
 import { NextRequest } from "next/server";
 import { generateText } from "ai";
-import { createTogetherAI } from "@ai-sdk/togetherai";
-
-const togetherai = createTogetherAI({
-  apiKey: process.env.TOGETHER_API_KEY ?? "",
-});
+import { togetherai, getUserId } from '@/lib/utils';
+import { processingRatelimit } from '@/lib/ratelimit';
 
 interface GetCareersRequest {
   resumeInfo: string;
@@ -13,6 +10,28 @@ interface GetCareersRequest {
 
 export async function POST(request: NextRequest) {
   const { resumeInfo, context } = (await request.json()) as GetCareersRequest;
+
+  const userId = getUserId(request);
+  const { success, limit, remaining, reset } = await processingRatelimit.limit(userId);
+
+  if (!success) {
+    return new Response(
+      JSON.stringify({
+        error: 'Rate limit exceeded',
+        limit,
+        remaining,
+        reset: new Date(reset).toISOString(),
+      }),
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': limit.toString(),
+          'X-RateLimit-Remaining': remaining.toString(),
+          'X-RateLimit-Reset': new Date(reset).toISOString(),
+        },
+      }
+    );
+  }
 
   const { text: careers } = await generateText({
     model: togetherai("Qwen/Qwen3-Next-80B-A3B-Instruct"),
@@ -116,14 +135,19 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.log("Career that errored: ", career.jobTitle);
         console.log({ error });
-        return new Response(JSON.stringify({ error }), {
-          status: 500,
-        });
+        return null;
       }
     }),
   );
 
-  return new Response(JSON.stringify(finalResults), {
+  const validResults = finalResults.filter((result): result is NonNullable<typeof result> => result !== null);
+
+  return new Response(JSON.stringify(validResults), {
     status: 200,
+    headers: {
+      'X-RateLimit-Limit': limit.toString(),
+      'X-RateLimit-Remaining': remaining.toString(),
+      'X-RateLimit-Reset': new Date(reset).toISOString(),
+    },
   });
 }

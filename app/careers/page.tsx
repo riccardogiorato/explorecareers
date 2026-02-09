@@ -17,6 +17,7 @@ import type { Node, NodeTypes } from 'reactflow';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import LoadingDots from '@/components/ui/loadingdots';
+import LoadingState from '@/components/ui/loading-state';
 import { finalCareerInfo } from '@/lib/types';
 
 const nodeTypes = {
@@ -83,6 +84,8 @@ export default function Start() {
 
   async function parsePdf() {
     setLoading(true);
+    
+    // First API call - parse PDF
     let response = await fetch('/api/parsePdf', {
       method: 'POST',
       headers: {
@@ -90,8 +93,18 @@ export default function Start() {
       },
       body: JSON.stringify({ resumeUrl: url }),
     });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage = errorData.error || 'Failed to parse PDF';
+      toast.error(errorMessage + (response.status === 429 ? ` - Try again at ${new Date(errorData.reset).toLocaleTimeString()}` : ''));
+      setLoading(false);
+      return;
+    }
+    
     let data = await response.json();
 
+    // Second API call - get careers
     let response2 = await fetch('/api/getCareers', {
       method: 'POST',
       headers: {
@@ -104,13 +117,21 @@ export default function Start() {
     });
 
     if (!response2.ok) {
-      console.error('Failed to fetch');
+      const errorData = await response2.json();
+      const errorMessage = errorData.error || 'Failed to generate';
+      toast.error(errorMessage + (response2.status === 429 ? ` - Try again at ${new Date(errorData.reset).toLocaleTimeString()}` : ''));
       setLoading(false);
-      notify();
       return;
     }
 
     let data2 = await response2.json();
+    
+    if (data2.length === 0) {
+      toast.error('No career paths could be generated. Please try again.');
+      setLoading(false);
+      return;
+    }
+    
     setCareerInfo(data2);
     setLoading(false);
   }
@@ -167,11 +188,11 @@ export default function Start() {
           />
           <Button
             onClick={parsePdf}
-            className='mt-10 text-base px-5 py-7 w-60'
+            className={`mt-10 text-base px-5 py-6 ${loading ? 'min-w-[230px]' : 'w-auto'}`}
             disabled={url ? false : true}
           >
             {loading ? (
-              <LoadingDots style='big' color='white' />
+              <LoadingState estimatedSeconds={20} />
             ) : (
               'Find your ideal career'
             )}
