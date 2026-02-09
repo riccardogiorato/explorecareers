@@ -11,6 +11,8 @@ import ReactFlow, {
   addEdge,
   useEdgesState,
   useNodesState,
+  useReactFlow,
+  ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import type { Node, NodeTypes } from 'reactflow';
@@ -23,6 +25,39 @@ import { finalCareerInfo } from '@/lib/types';
 const nodeTypes = {
   careerNode: CareerNode,
 } satisfies NodeTypes;
+
+function CareerGraph({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: {
+  nodes: Node[];
+  edges: any[];
+  onNodesChange: any;
+  onEdgesChange: any;
+  onConnect: any;
+}) {
+  const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    if (nodes.length > 0) {
+      setTimeout(() => {
+        fitView({ padding: 0.2, duration: 800 });
+      }, 100);
+    }
+  }, [nodes, fitView]);
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      nodeTypes={nodeTypes}
+      fitView
+      fitViewOptions={{ padding: 0.2 }}
+    >
+      <Controls />
+    </ReactFlow>
+  );
+}
 
 export default function Start() {
   const [_, setName] = useState('');
@@ -140,16 +175,15 @@ export default function Start() {
     <div>
       {careerInfo.length !== 0 ? (
         <div className='w-screen h-[1200px] mx-auto'>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-          >
-            <Controls />
-          </ReactFlow>
+          <ReactFlowProvider>
+            <CareerGraph
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+            />
+          </ReactFlowProvider>
         </div>
       ) : (
         <div className='p-10 mt-16 flex justify-center items-center flex-col '>
