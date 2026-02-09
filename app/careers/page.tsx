@@ -23,176 +23,55 @@ const nodeTypes = {
   careerNode: CareerNode,
 } satisfies NodeTypes;
 
-// TODO: Clean this up
-const initialNodes = [
-  {
-    id: '1',
-    position: { x: 650, y: 450 },
-    data: { label: 'Careers' },
-    style: { background: '#000', color: '#fff', fontSize: '20px' },
-  },
-  {
-    id: '2',
-    type: 'careerNode',
-    position: { x: 50, y: 550 },
-    data: {
-      jobTitle: 'SEO Specialist',
-      jobDescription: `Uses research to improve a website's ranking in search engine results`,
-      timeline: '2-3 months',
-      salary: '$59k - $77k',
-      difficulty: 'Low',
-      connectPosition: 'top',
-    },
-  },
-  {
-    id: '3',
-    type: 'careerNode',
-    position: { x: 1050, y: 550 },
-    data: {
-      jobTitle: 'UX Designer',
-      jobDescription:
-        'Creates user-centered design solutions to improve product usability and user experience.',
-      timeline: '3-6 months',
-      salary: '$85k - $110k',
-      difficulty: 'Medium',
-      connectPosition: 'top',
-    },
-  },
-  {
-    id: '4',
-    type: 'careerNode',
-    position: { x: 50, y: 150 },
-    data: {
-      jobTitle: 'Digital Marketing Specialist',
-      jobDescription:
-        'Develops online marketing campaigns to drive business growth.',
-      timeline: '2-4 months',
-      salary: '$50k - $70k',
-      difficulty: 'Low',
-      connectPosition: 'bottom',
-    },
-  },
-  {
-    id: '5',
-    type: 'careerNode',
-    position: { x: 1050, y: 150 },
-    data: {
-      jobTitle: 'Software Engineer',
-      jobDescription:
-        'Designs, develops, and tests software applications to meet business needs.',
-      timeline: '6-12 months',
-      salary: '$100k - $140k',
-      difficulty: 'High',
-      connectPosition: 'bottom',
-    },
-  },
-  {
-    id: '6',
-    type: 'careerNode',
-    position: { x: 550, y: 700 },
-    data: {
-      jobTitle: 'Cybersecurity Specialist',
-      jobDescription:
-        'Protects computer systems and networks from cyber threats by developing and implementing security protocols.',
-      timeline: '6-12 months',
-      salary: '$80k - $120k',
-      difficulty: 'High',
-      connectPosition: 'top',
-    },
-  },
-  {
-    id: '7',
-    type: 'careerNode',
-    position: { x: 550, y: 0 },
-    data: {
-      jobTitle: 'Business Analyst',
-      jobDescription:
-        'Analyzes business needs and develops solutions to improve operations and processes.',
-      timeline: '3-6 months',
-      salary: '$65k - $90k',
-      difficulty: 'Medium',
-      connectPosition: 'bottom',
-    },
-  },
-] satisfies Node[];
-
-const initialEdges = [
-  {
-    id: 'e1-2',
-    source: '1',
-    target: '2',
-    animated: true,
-    style: { stroke: '#000' },
-  },
-  {
-    id: 'e1-3',
-    source: '1',
-    target: '3',
-    animated: true,
-    style: { stroke: '#000' },
-  },
-  {
-    id: 'e1-4',
-    source: '1',
-    target: '4',
-    animated: true,
-    style: { stroke: '#000' },
-  },
-  {
-    id: 'e1-5',
-    source: '1',
-    target: '5',
-    animated: true,
-    style: { stroke: '#000' },
-  },
-  {
-    id: 'e1-6',
-    source: '1',
-    target: '6',
-    animated: true,
-    style: { stroke: '#000' },
-  },
-  {
-    id: 'e1-7',
-    source: '1',
-    target: '7',
-    animated: true,
-    style: { stroke: '#000' },
-  },
-];
-
 export default function Start() {
   const [_, setName] = useState('');
   const [url, setUrl] = useState('');
-  const [nodes, setNodes, onNodesChange] = useNodesState(
-    initialNodes as Node[]
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [careerInfo, setCareerInfo] = useState<finalCareerInfo[]>([]);
   const [additionalContext, setAdditionalContext] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setNodes((initialNodes) =>
-      initialNodes.map((node) => {
-        if (node.id === '1') {
-          node.data = {
-            label: 'Careers',
-          };
-        } else {
-          let realdata = careerInfo[Number(node.id) - 2];
+    if (careerInfo.length === 0) return;
 
-          if (node.id === '2' || node.id === '3' || node.id === '6') {
-            // @ts-ignore
-            node.data = { ...realdata, connectPosition: 'top' };
-          } else {
-            // @ts-ignore
-            node.data = { ...realdata, connectPosition: 'bottom' };
-          }
-        }
-        return node;
-      })
-    );
+    const centerNode = {
+      id: '1',
+      position: { x: 650, y: 450 },
+      data: { label: 'Careers' },
+      style: { background: '#000', color: '#fff', fontSize: '20px' },
+    };
+
+    const positions = [
+      { x: 50, y: 550, connectPosition: 'top' },
+      { x: 1050, y: 550, connectPosition: 'top' },
+      { x: 50, y: 150, connectPosition: 'bottom' },
+      { x: 1050, y: 150, connectPosition: 'bottom' },
+      { x: 550, y: 700, connectPosition: 'top' },
+      { x: 550, y: 0, connectPosition: 'bottom' },
+    ];
+
+    const careerNodes = careerInfo.slice(0, 6).map((career, index) => ({
+      id: String(index + 2),
+      type: 'careerNode' as const,
+      position: positions[index],
+      data: {
+        ...career,
+        connectPosition: positions[index].connectPosition,
+      },
+    }));
+
+    setNodes([centerNode, ...careerNodes]);
+
+    const newEdges = careerNodes.map((node) => ({
+      id: `e1-${node.id}`,
+      source: '1',
+      target: node.id,
+      animated: true,
+      style: { stroke: '#000' },
+    }));
+
+    setEdges(newEdges);
   }, [careerInfo]);
 
   const onConnect = useCallback(
