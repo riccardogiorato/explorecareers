@@ -19,11 +19,19 @@ export function removePII(input: string): string {
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
   cleaned = cleaned.replace(emailRegex, "[EMAIL_REMOVED]");
 
-  // Remove phone numbers (various formats)
-  // Matches: (123) 456-7890, 123-456-7890, +1 123 456 7890, 123.456.7890, etc.
+  // Remove phone numbers (various formats including international)
+  // Matches: +41 78 646 55 77, (123) 456-7890, 123-456-7890, +1 123 456 7890, etc.
   const phoneRegex =
-    /(\+?\d{1,3}[\s\-\.]?)?\(?\d{3}\)?[\s\-\.]?\d{3}[\s\-\.]?\d{4}/g;
+    /\+?\d{1,3}[\s\-\.]?\(?\d{1,4}\)?[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{0,4}/g;
   cleaned = cleaned.replace(phoneRegex, "[PHONE_REMOVED]");
+
+  // Remove LinkedIn profile URLs
+  const linkedinRegex = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-_]+/gi;
+  cleaned = cleaned.replace(linkedinRegex, "[LINKEDIN_PROFILE_REMOVED]");
+
+  // Remove personal websites (domains with usernames)
+  const websiteRegex = /(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9\-_]+\.[a-z]{2,}(?:\.[a-z]{2,})?\b/gi;
+  cleaned = cleaned.replace(websiteRegex, "[WEBSITE_REMOVED]");
 
   return cleaned;
 }
