@@ -38,7 +38,7 @@ function CareerGraph({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: 
   useEffect(() => {
     if (nodes.length > 0) {
       setTimeout(() => {
-        fitView({ padding: 0.5, duration: 800 });
+        fitView({ padding: 0.6, duration: 800 });
       }, 100);
     }
   }, [nodes, fitView]);
@@ -52,7 +52,7 @@ function CareerGraph({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: 
       onConnect={onConnect}
       nodeTypes={nodeTypes}
       fitView
-      fitViewOptions={{ padding: 0.5 }}
+      fitViewOptions={{ padding: 0.5, minZoom: 0.5, maxZoom: 1.5 }}
     >
       <Controls />
     </ReactFlow>
