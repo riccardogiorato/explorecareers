@@ -29,7 +29,6 @@ This app lets people upload their resumes, fill in some of their interests, and 
 
 ## Future tasks
 
-- [ ] Clean up the code to not have default react node data that I have right now
 - [ ] Add authentication with Clerk to make people create accounts and remember their resumes
 - [ ] Improve the prompts using synthetic data from GPT-4o for the examples that I specify
 - [ ] Add sharability to the URLs with nanoid
