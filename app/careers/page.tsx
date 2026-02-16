@@ -174,7 +174,7 @@ export default function Start() {
   return (
     <div>
       {careerInfo.length !== 0 ? (
-        <div className='w-screen h-[80vh] mx-auto'>
+        <div className='w-[98vw] h-[80vh] mx-auto'>
           <ReactFlowProvider>
             <CareerGraph
               nodes={nodes}
