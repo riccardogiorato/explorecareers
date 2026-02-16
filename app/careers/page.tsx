@@ -38,7 +38,7 @@ function CareerGraph({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: 
   useEffect(() => {
     if (nodes.length > 0) {
       setTimeout(() => {
-        fitView({ padding: 0.2, duration: 800 });
+        fitView({ padding: 0.5, duration: 800 });
       }, 100);
     }
   }, [nodes, fitView]);
@@ -52,7 +52,7 @@ function CareerGraph({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: 
       onConnect={onConnect}
       nodeTypes={nodeTypes}
       fitView
-      fitViewOptions={{ padding: 0.2 }}
+      fitViewOptions={{ padding: 0.5 }}
     >
       <Controls />
     </ReactFlow>
@@ -119,7 +119,7 @@ export default function Start() {
 
   async function parsePdf() {
     setLoading(true);
-    
+
     // First API call - parse PDF
     let response = await fetch('/api/parsePdf', {
       method: 'POST',
@@ -128,7 +128,7 @@ export default function Start() {
       },
       body: JSON.stringify({ resumeUrl: url }),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       const errorMessage = errorData.error || 'Failed to parse PDF';
@@ -136,7 +136,7 @@ export default function Start() {
       setLoading(false);
       return;
     }
-    
+
     let data = await response.json();
 
     // Second API call - get careers
@@ -160,13 +160,13 @@ export default function Start() {
     }
 
     let data2 = await response2.json();
-    
+
     if (data2.length === 0) {
       toast.error('No career paths could be generated. Please try again.');
       setLoading(false);
       return;
     }
-    
+
     setCareerInfo(data2);
     setLoading(false);
   }
@@ -174,7 +174,7 @@ export default function Start() {
   return (
     <div>
       {careerInfo.length !== 0 ? (
-        <div className='w-screen h-[1200px] mx-auto'>
+        <div className='w-screen h-[80vh] mx-auto'>
           <ReactFlowProvider>
             <CareerGraph
               nodes={nodes}
@@ -195,30 +195,33 @@ export default function Start() {
             We'll analyze your resume along with the interests you provide and
             provide you with 6 personalized career paths for you.
           </p>
-          <UploadDropzone
-            options={uploaderOptions}
-            onUpdate={({ uploadedFiles }) => {
-              if (uploadedFiles.length !== 0) {
-                const file = uploadedFiles[0];
-                const fileName = file.originalFile.file.name;
-                const fileUrl = UrlBuilder.url({
-                  accountId: file.accountId,
-                  filePath: file.filePath,
-                });
-                setName(fileName);
-                setUrl(fileUrl);
-              }
-            }}
-            onComplete={() => console.log('upload complete')}
-            width='695px'
-            height='350px'
-          />
+          <div className={`relative w-full flex justify-center ${loading ? 'pointer-events-none opacity-60' : ''}`}>
+            <UploadDropzone
+              options={uploaderOptions}
+              onUpdate={({ uploadedFiles }) => {
+                if (uploadedFiles.length !== 0) {
+                  const file = uploadedFiles[0];
+                  const fileName = file.originalFile.file.name;
+                  const fileUrl = UrlBuilder.url({
+                    accountId: file.accountId,
+                    filePath: file.filePath,
+                  });
+                  setName(fileName);
+                  setUrl(fileUrl);
+                }
+              }}
+              onComplete={() => console.log('upload complete')}
+              width='695px'
+              height='350px'
+            />
+          </div>
           <Textarea
             placeholder='Describe any of your career interests and passions. This will help us match you with the right job paths (optional).'
             value={additionalContext}
             onChange={(e) => setAdditionalContext(e.target.value)}
             className='mt-5 max-w-2xl text-base border border-gray-400 focus:border-black'
             rows={6}
+            disabled={loading}
           />
           <Button
             onClick={parsePdf}
