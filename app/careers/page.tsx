@@ -132,7 +132,9 @@ export default function Start() {
     if (!response.ok) {
       const errorData = await response.json();
       const errorMessage = errorData.error || 'Failed to parse PDF';
-      toast.error(errorMessage + (response.status === 429 ? ` - Try again at ${new Date(errorData.reset).toLocaleTimeString()}` : ''));
+      const resetTime = new Date(errorData.reset);
+      const minutesLeft = Math.max(1, Math.ceil((resetTime.getTime() - Date.now()) / 60000));
+      toast.error(errorMessage + (response.status === 429 ? ` - Try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}` : ''));
       setLoading(false);
       return;
     }
@@ -154,7 +156,9 @@ export default function Start() {
     if (!response2.ok) {
       const errorData = await response2.json();
       const errorMessage = errorData.error || 'Failed to generate';
-      toast.error(errorMessage + (response2.status === 429 ? ` - Try again at ${new Date(errorData.reset).toLocaleTimeString()}` : ''));
+      const resetTime2 = new Date(errorData.reset);
+      const minutesLeft2 = Math.max(1, Math.ceil((resetTime2.getTime() - Date.now()) / 60000));
+      toast.error(errorMessage + (response2.status === 429 ? ` - Try again in ${minutesLeft2} minute${minutesLeft2 !== 1 ? 's' : ''}` : ''));
       setLoading(false);
       return;
     }
