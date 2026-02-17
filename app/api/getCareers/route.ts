@@ -1,23 +1,26 @@
 import { NextRequest } from "next/server";
 import { generateText } from "ai";
-import { togetherai, getUserId } from '@/lib/utils';
-import { processingRatelimit } from '@/lib/ratelimit';
+import { togetherai, getUserId } from "@/lib/utils";
+import { processingRatelimit } from "@/lib/ratelimit";
 
 interface GetCareersRequest {
   resumeInfo: string;
   context: string;
 }
+const MAIN_MODEL = "Qwen/Qwen3-Next-80B-A3B-Instruct";
+const SUB_MODEL = "Qwen/Qwen3-Next-80B-A3B-Instruct";
 
 export async function POST(request: NextRequest) {
   const { resumeInfo, context } = (await request.json()) as GetCareersRequest;
 
   const userId = getUserId(request);
-  const { success, limit, remaining, reset } = await processingRatelimit.limit(userId);
+  const { success, limit, remaining, reset } =
+    await processingRatelimit.limit(userId);
 
   if (!success) {
     return new Response(
       JSON.stringify({
-        error: 'Rate limit exceeded',
+        error: "Rate limit exceeded",
         limit,
         remaining,
         reset: new Date(reset).toISOString(),
@@ -25,16 +28,16 @@ export async function POST(request: NextRequest) {
       {
         status: 429,
         headers: {
-          'X-RateLimit-Limit': limit.toString(),
-          'X-RateLimit-Remaining': remaining.toString(),
-          'X-RateLimit-Reset': new Date(reset).toISOString(),
+          "X-RateLimit-Limit": limit.toString(),
+          "X-RateLimit-Remaining": remaining.toString(),
+          "X-RateLimit-Reset": new Date(reset).toISOString(),
         },
-      }
+      },
     );
   }
 
   const { text: careers } = await generateText({
-    model: togetherai("Qwen/Qwen3-Next-80B-A3B-Instruct"),
+    model: togetherai(MAIN_MODEL),
     system: "You are a helpful career expert that ONLY responds in JSON.",
     prompt: `Give me 6 career paths that the following user could transition into based on their resume and any additional context. Respond like this in JSON: {jobTitle: string, jobDescription: string, timeline: string, salary: string, difficulty: string}.
 
@@ -95,7 +98,7 @@ export async function POST(request: NextRequest) {
     careerInfoJSON.map(async (career: any) => {
       try {
         const { text: specificCareer } = await generateText({
-          model: togetherai("Qwen/Qwen3-Next-80B-A3B-Instruct"),
+          model: togetherai(SUB_MODEL),
           system: "You are a helpful career expert that ONLY responds in JSON.",
           prompt: `You are helping a person transition into the ${career.jobTitle} role in ${career.timeline}. Given the context about the person, return more information about the ${career.jobTitle} role in JSON as follows: {workRequired: string, aboutTheRole: string, whyItsagoodfit: array[], roadmap: [{string: string}, ...]
 
@@ -140,14 +143,16 @@ export async function POST(request: NextRequest) {
     }),
   );
 
-  const validResults = finalResults.filter((result): result is NonNullable<typeof result> => result !== null);
+  const validResults = finalResults.filter(
+    (result): result is NonNullable<typeof result> => result !== null,
+  );
 
   return new Response(JSON.stringify(validResults), {
     status: 200,
     headers: {
-      'X-RateLimit-Limit': limit.toString(),
-      'X-RateLimit-Remaining': remaining.toString(),
-      'X-RateLimit-Reset': new Date(reset).toISOString(),
+      "X-RateLimit-Limit": limit.toString(),
+      "X-RateLimit-Remaining": remaining.toString(),
+      "X-RateLimit-Reset": new Date(reset).toISOString(),
     },
   });
 }
